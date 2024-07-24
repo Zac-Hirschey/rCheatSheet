@@ -1,0 +1,461 @@
+---
+title: "Cheat Sheet"
+format: html
+editor: visual
+---
+
+# Need help with function
+
+?"function"
+
+```{r}
+?mean
+?ChickWeight
+```
+
+# Objects and Functions
+
+## the basics
+
+```{r}
+5+6
+a <- 5
+b <- 6
+a + b
+sum(a+b)
+ages <- c(5,6)
+ages
+sum(ages)
+```
+
+## Creating "data frame"
+
+```{r}
+names <- c('John', 'James')
+friends <-  data.frame(names, ages)
+View(friends)
+```
+
+## Pulling Specific data from DF
+
+use "data"\$"column"
+
+```{r}
+friends$name
+friends$age
+sum(friends$age)
+```
+
+## Subsetting Data
+
+use \[x,y\] (x =row, y= column)
+
+```{r}
+friends[1,1]
+friends[1,]
+friends[,1]
+```
+
+# Built in Data Sets
+
+using the function data() gives a list of all data sets build into r. then you can use function view("data") and it will pull up the data.
+
+## Using Tidyverse
+
+-   filter: filter(x, filter, method = c("convolution", "recursive"), sides = 2, circular = FALSE, init)
+
+-   select: select(.data, ...)
+
+    -   Starts_with, ends_with, contains, matches, num_range
+
+-   mutate: mutate(.data,...,.by = NULL, keep = c("all", "used", "unused", "none"),before = NULL, after = NULL )
+
+-   transmute: transmute(.data, ...)
+
+-   arrange: arrange(.data, ..., .by_group = FALSE)
+
+-   name:rename(.data, new_name= old_name)
+
+-   summarize: summarize(.data, ..., .by = NULL, .groups = NULL)
+
+-   count: count(x, ..., wt = NULL, sort = FALSE, name = NULL)
+
+```{r}
+library(tidyverse)
+ starwars %>% filter(height>150, mass < 200) %>% 
+  mutate(height_in_meters = height/100) %>% 
+  select(height_in_meters, mass) %>% 
+  arrange(mass) %>% glimpse()
+ 
+```
+
+## Exploring Data
+
+using the msleep data
+
+```{r}
+glimpse(msleep)
+head(msleep) #gives first 10 items in data 
+tail(msleep) # gives last 10 items in data 
+class(msleep$name) # what kind of variable the data is
+length(msleep) # number of variables
+length(msleep$name) # number of observations in variable 
+names(msleep) # all the variable names 
+unique(msleep$vore) # name of all possible observation in a variable 
+missing <-  !complete.cases(msleep) #takes all rows that have missing value 
+msleep[missing, ]
+```
+
+## Cleaning Data
+
+using the Starwars data
+
+```{r}
+starwars%>% 
+  select(name, height, mass) 
+starwars %>% 
+  select(ends_with('color'))
+starwars %>% 
+  rename("character"= "name") 
+starwars$hair_color <-  as.factor(starwars$hair_color) # changes class of variable 
+class(starwars$hair_color)
+starwars %>% 
+  mutate(hair_color = as.character(hair_color)) %>% 
+  glimpse() # changed hair color back from factor to character
+```
+
+## Changing factor Levels
+
+```{r}
+df <-  starwars
+df$sex <-  as.factor(df$sex)
+levels(df$sex)
+
+df <- df %>% 
+  mutate(sex = factor(sex,
+    levels = c('male', 'female', 'hermaphroitic', 'non'
+               )))
+levels(df$sex)
+```
+
+## Filtering Data
+
+```{r}
+starwars %>% 
+  select(mass, sex) %>% 
+  filter(mass < 55 & sex==  'male')
+```
+
+## Recode Data
+
+```{r}
+starwars %>%  
+  select(sex) %>% 
+  mutate(sex= recode(sex, 'male'= 'man', 'female'= 'woman'))
+```
+
+## Dealing with missing data
+
+```{r}
+mean(starwars$height) #missing data
+mean(starwars$height, na.rm = TRUE)
+```
+
+## Dealing with Duplicates
+
+first were gonna make a small data frame
+
+```{r}
+name <- c( 'Peter', "John", 'Andrew', 'Peter')
+age <-c(22, 33, 44, 22)
+
+friend <- data.frame(name, age)
+friend
+```
+
+Now we have our date frame with duplicates
+
+```{r}
+friend %>%  
+  distinct()
+```
+
+## Creating or Changing a Variable (mutate)
+
+```{r}
+starwars %>% 
+  mutate(height_m = height/100) %>% 
+  select(name, height, height_m) %>% 
+  head()
+```
+
+## Conditional Change (if_else)
+
+```{r}
+starwars %>% 
+  mutate(height_m = height/100) %>% 
+  select(name, height, height_m) %>% 
+  mutate(tallness = if_else(height_m< 1, 'short', 'tall')) %>% 
+  head() # created variable named tallness, and then if < 1 short, if else > 1 then tall 
+```
+
+# Reshaping Data
+
+Using gapminder data set
+
+```{r}
+library(gapminder)
+data <-  select(gapminder, country, year, lifeExp)
+head(data) # long data is sometimes hard to work with 
+
+wide_data <- data %>% 
+  pivot_wider(names_from = year, values_from = lifeExp)
+head(wide_data) # use pivot_wider to transform into wide data; it's easier to use with this data
+
+long_data <- wide_data %>% 
+  pivot_longer(2:13, names_to = 'year', values_to = 'lifeExp') %>% 
+  view(long_data) # this looks just like the original data 
+```
+
+## Describing Data
+
+can use functions to determine Range/Spread of data
+
+-   min
+
+-   max
+
+-   range
+
+-   IQR
+
+To find Central points of Data
+
+-   mean
+
+-   median
+
+-   mode
+
+To find the Spread of the data
+
+-   var
+
+-   sd
+
+OR you can use summary which does pretty much all of those functions in 1
+
+```{r}
+min(msleep$awake)
+max(msleep$awake)
+range(msleep$awake)
+IQR(msleep$awake)
+mean(msleep$awake)
+median(msleep$awake)
+mode(msleep$awake)
+var(msleep$awake)
+sd(msleep$awake)
+summary(msleep$awake)
+msleep %>% 
+  select(awake, sleep_total) %>% 
+  summary()
+```
+
+## Creating Tables
+
+```{r}
+table(msleep$vore) # how many of each category
+ msleep %>% 
+   select(vore, order) %>% 
+   filter(order %in% c("Rodentia", 'Primates')) %>% 
+   table()
+  
+```
+
+# Data Visualization 
+
+## Using base r 
+
+```{r}
+plot(pressure)
+```
+
+## The Grammar of Graphics 
+
+### - Data, Mapping, Geometry 
+
+Data: define the data frame that you're using
+
+Mapping: Variables are mapped using "Aesthetics" (x, y), color, shape, size
+
+Geometry: lines, bar charts, histograms,
+
+### Bar Plot 
+
+```{r}
+ggplot(data = starwars, 
+       mapping = aes(x = gender))+
+  geom_bar()
+
+# barplot of gender
+# counts how many of each gender
+```
+
+### Histogram 
+
+```{r}
+starwars %>% 
+  drop_na(height) %>% 
+  ggplot(mapping = aes(x = height))+
+  geom_histogram()
+# drop all missing values in height
+# make histogram 
+```
+
+### Box Plot 
+
+```{r}
+starwars %>% 
+  drop_na(height) %>% 
+  ggplot(mapping = aes(x = height))+
+  geom_boxplot(fill = 'steelblue')+
+  theme_bw()+
+  labs(title = 'Boxplot of heights', 
+       x = 'Height of Characters')
+#drop all missing values in height
+# fill color of box plot = blue 
+# theme = black and white 
+# added graph title and X-axis title 
+```
+
+### Density Plot 
+
+```{r}
+starwars %>% 
+  drop_na(height) %>% 
+  filter(sex %in% c('male', 'female')) %>% 
+  ggplot(mapping = aes(x = height, color = sex, fill = sex))+
+  geom_density(alpha = .2)+ 
+  theme_bw()
+# drop all missing values in height 
+# filter to be genders "male" or "female"
+# geom_density -> alpha is the darkenss of the color 1 is full fill, .2 is transparnent
+# theme = black and white 
+  
+```
+
+### Scatter Plot 
+
+```{r}
+starwars %>% 
+  filter(mass< 200) %>% 
+  ggplot(mapping = aes(height, mass, color =sex))+
+  geom_point(size = 5, alpha =.5)+
+  theme_bw()+
+  labs(title = "Height and mass by sex")
+
+# filter all masses < 200
+# x = height, y= mass, then color the graph based of gender
+# size of dots = 5, alpha= .5 is the transperncy 
+# theme = black and white 
+# gave the graph a title 
+```
+
+### Smoothed Model 
+
+```{r}
+starwars %>% 
+  filter(mass< 200) %>% 
+  ggplot(mapping = aes(height, mass, color =sex))+
+  geom_point(size=3, alpha = .8)+
+  geom_smooth()+
+  facet_wrap(~sex)+
+  theme_bw()+
+  labs(title = "Height and mass by sex")
+
+# filter all masses < 200
+# x = height, y= mass, then color the graph based of gender
+# size of dots = 5, alpha= .8 is the transperncy 
+# geom smooth makes a linear model 
+# facet_wrap makes an idividual box for each category (gender)
+# theme = black and white 
+# gave the graph a title 
+```
+
+# Analyzing data 
+
+## Hypothesis Testing 
+
+using gapminder dataset
+
+### T-Test 
+
+```{r}
+gapminder %>% 
+  filter(continent %in% c('Africa', 'Europe')) %>% 
+  t.test(lifeExp ~ continent, data = ., altrnative = 'two.sided', paired = FALSE)
+```
+
+###  ANOVA
+
+```{r}
+gapminder %>% 
+  filter(year ==2007) %>% 
+  filter(continent %in% c('Americas', 'Europe', 'Asia')) %>% 
+aov(lifeExp~continent, data = .) %>% 
+  summary()
+```
+
+```{r}
+gapminder %>% 
+  filter(year ==2007) %>% 
+  filter(continent %in% c('Americas', 'Europe', 'Asia')) %>% 
+aov(lifeExp~continent, data = .) %>% 
+  TukeyHSD()
+```
+
+```{r}
+gapminder %>% 
+  filter(year ==2007) %>% 
+  filter(continent %in% c('Americas', 'Europe', 'Asia')) %>% 
+aov(lifeExp~continent, data = .) %>% 
+  TukeyHSD() %>% 
+  plot()
+```
+
+### Chi Squared Test
+
+using iris data set
+
+```{r}
+head(iris)
+```
+
+```{r}
+flowers <- iris %>% 
+  mutate(size = cut(Sepal.Length, breaks = 3, labels = c('small', 'Medium', 'Large'))) %>% 
+  select(Species, size)
+
+# Chi Squared goodness of fit test
+flowers %>% 
+  select(size) %>% 
+  table() %>% 
+  chisq.test()
+
+# Chi Squared test of idependence 
+flowers %>% 
+  table() %>% 
+  chisq.test()
+```
+
+## Linear Model 
+
+using 'Cars' data set
+
+```{r}
+head(cars, 10)
+
+cars %>% 
+  lm(dist~speed, data = .) %>% 
+  summary()
+```
